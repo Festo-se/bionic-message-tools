@@ -21,7 +21,7 @@ import logging
 import time
 import platform
 
-from bionic_messages.bionic_messages import BionicMessageBase, BionicSetLoomiaValuesActionMessage
+from bionic_message_base.bionic_message_base import BionicMessageBase
 from bionic_message_tools.bionic_message_tools import BionicMessageHandler
 
 class BionicSerialClient:
@@ -43,7 +43,7 @@ class BionicSerialClient:
             # Write name into the ftdi description list
 
             logging.info("Setup COM port for windows")
-            _port = 'COM4'
+            _port = 'COM30'
             self.windows_usb_serial_port = f"USB Serial Port ({_port})" 
 
         elif platform.system() == "Linux":

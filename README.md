@@ -12,10 +12,14 @@ These tools were developed to enable a bidirectional communication with our hard
 Currently they are used for the BionicSoftHand Project. It is possible to talk to the Hand with the UDP implementation.     
 The serial communication is only for a specific sensor to test them independent from the other hardware.
 
-# DOCUMENTATION
-Under the folder docs is the complete [documentation](docs/build/html/index.html) for the code.
+# USING WITH THE BIONIC SOFT HAND 
+If this package is used within the BionicSoftHand project, please refer either to the BionicSoftHand [python](https://github.com/Schwimo/phand-python-libs/blob/master/README.md) or [ROS](https://github.com/Schwimo/phand-ros/blob/master/README.md) install instructions.
 
-# EXAMPLE
+# INSTALL INSTRUCTIONS 
+```
+pip3 install . 
+```
+to install this library locally on your computer.
 
 # CREDITS:
 This project uses the following libraries:

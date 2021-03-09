@@ -44,7 +44,7 @@ class BionicMessageHandler:
                     self._send_func(msg.data)
 
         def handle_message(self, msg_id, payload, device_id):            
-                        
+            
             if msg_id in self._message_ids:                                         
                 self._messages[self._message_ids.index(msg_id)].process_msg(payload, device_id)               
                 return True

@@ -31,25 +31,24 @@ class BionicSerialClient:
     _send_timeout = 1.0 # Sec
     _shutdown = False    
     
-    def __init__(self, message_handler=BionicMessageHandler(), baud=2000000):
-
-        self.windows_usb_serial_port = ""
-
+    def __init__(self, message_handler=BionicMessageHandler(),  port='/dev/ttyUSB0', baud=2000000):
+        
         # Setup the serial port for different systems
         if platform.system() == "Windows":
             
+            # TODO:
             # List COM Ports
             # Select via number one of these
             # Write name into the ftdi description list
 
             logging.info("Setup COM port for windows")
-            _port = 'COM30'
-            self.windows_usb_serial_port = f"USB Serial Port ({_port})" 
+            #_port = f"USB Serial Port ({port})"             
+            self._port = f"({port})"             
 
         elif platform.system() == "Linux":
             
             logging.info("Setup COM port for linux")
-            _port = '/dev/ttyUSB0'
+            self._port = '/dev/ttyUSB0'
 
         self._baud = baud
         self.mutex = Lock()
@@ -84,7 +83,7 @@ class BionicSerialClient:
 
                 in_byte = -1
                 if header:
-                    in_byte =header[0]
+                    in_byte = header[0]
 
                 if in_byte == BionicMessageBase.get_preamble():
 
@@ -114,8 +113,8 @@ class BionicSerialClient:
                         msg_length_data = payload[counter + 2:counter + 4]
                         msg_length = struct.unpack('H', msg_length_data)[0]
 
-                        # print("COUNTER: %d LENGTH: %d" % (counter, length))
-                        # print ("ID: %s MSG LENGTH %d" % (msg_id, msg_length))
+                        #print("COUNTER: %d LENGTH: %d" % (counter, length))
+                        #print ("ID: %s MSG LENGTH %d" % (msg_id, msg_length))
 
                         if msg_length <= 0:
                             break                        
@@ -151,12 +150,13 @@ class BionicSerialClient:
                         
             for port in serial.tools.list_ports.comports():
                 logging.info("found: " + str(port.description))
-                                
+
+                print(f"FOUND: {port.description}  IST: {self._port}")
+                
                 # TODO: Implement the description finding for Windows
-                if port.description in ["FT231X USB UART", "FT232R USB UART", "FT232RL", "XBee-USB", "TransmitterEMS433", self.windows_usb_serial_port]:
-                    
+                if self._port in port.description:
                     self._port = port.device                    
-                    logging.info("Found suitable FTDI at port: " + str(self._port))
+                    logging.info("Found suitable Serial device at port: " + str(self._port))
                     try:
                         self._ser = serial.Serial(self._port, self._baud, exclusive=True, timeout=None)                        
                         serial_port_open = True

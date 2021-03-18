@@ -9,8 +9,10 @@ __maintainer__ = "Timo Schwarzer"
 __email__ = "timo.schwarzer@festo.com"
 __status__ = "Experimental"
 
-import serial, struct
-import serial.tools.list_ports
+import serial
+import struct
+
+from serial.tools import list_ports
 from serial.serialutil import SerialException
 
 import threading
@@ -48,7 +50,7 @@ class BionicSerialClient:
         elif platform.system() == "Linux":
             
             logging.info("Setup COM port for linux")
-            self._port = '/dev/ttyUSB0'
+            self._port = '/dev/ttyACM0'
 
         self._baud = baud
         self.mutex = Lock()
@@ -148,7 +150,7 @@ class BionicSerialClient:
         serial_port_open = False
         while not self._shutdown:
                         
-            for port in serial.tools.list_ports.comports():
+            for port in list_ports.comports():
                 logging.info("found: " + str(port.description))
 
                 print(f"FOUND: {port.description}  IST: {self._port}")
@@ -189,3 +191,6 @@ class BionicSerialClient:
         self.mutex.release()
 
         return True
+
+if __name__ == "__main__":
+    BionicSerialClient()

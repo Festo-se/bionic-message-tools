@@ -23,6 +23,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[        
-        'pyserial'
+        'pyserial==3.4',
+        'paho-mqtt'
     ],
 )

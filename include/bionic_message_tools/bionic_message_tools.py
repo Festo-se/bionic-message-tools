@@ -43,10 +43,10 @@ class BionicMessageHandler:
                 if msg.is_msg_available():
                     self._send_func(msg.data)
 
-        def handle_message(self, msg_id, payload, device_id):            
-            
-            if msg_id in self._message_ids:                                         
-                self._messages[self._message_ids.index(msg_id)].process_msg(payload, device_id)               
+        def handle_message(self, msg_id, payload, device_id):                                    
+            if msg_id in self._message_ids:                 
+                index = self._message_ids.index(msg_id)                 
+                self._messages[index].process_msg(payload, device_id)               
                 return True
             else:
                 raise NameError("Unhandled message id: " + '{:02x}'.format(msg_id))

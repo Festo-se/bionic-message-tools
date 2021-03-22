@@ -5,21 +5,19 @@ import time
 import threading
 import paho.mqtt.client as mqtt
 
-from bionic_message_tools.bionic_message_tools import BionicMessageHandler
-
 class BionicMqttClient:
     
     publishers = []
     subscribers = []
     isShutdown = False
 
-    def __init__(self, url, msg_cb, port=1883, message_handler=BionicMessageHandler()):
+    def __init__(self, url, msg_cb, port=1883):
         """
         The BionicMqttClient handles the setup to connect with a broker
         Provide the url and the Message callback function which is called when a
         subscribed topic receives a new message.        
         """
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
 
         self.msg_cb = msg_cb
         self.port = port
@@ -43,14 +41,12 @@ class BionicMqttClient:
     def run(self):
 
         self.mqttc.connect(self.url, self.port, 60)
-
-        while not self.isShutdown:
-            self.mqttc.loop()            
+        self.mqttc.loop_forever()     
 
     def shutdown(self):
 
-        self.mqttc.loop_stop()
-        self.isShutdown = True             
+        self.isShutdown = True    
+        self.mqttc.loop_stop()                 
         self.mqttc.disconnect()
         
     def publish(self, topic, msg, qos=1):
@@ -66,6 +62,9 @@ class BionicMqttClient:
             self.mqttc.subscribe(x)
 
     def on_message(self, mqttc, obj, msg):    
+        """
+        QOS: Quality of servive: 0 = max once; 1 = at least once; 2 = exactly once
+        """
         logging.debug(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))    
 
         try:            

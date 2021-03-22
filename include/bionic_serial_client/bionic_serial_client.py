@@ -59,8 +59,7 @@ class BionicSerialClient:
 
         # Try to find the FTDI
         self._ser = []      
-        self.open_serial_port()  
-        self._ser.timeout = 0.001   
+        self.open_serial_port()                 
         self.run_thread = threading.Thread(target=self.run)
         self.run_thread.setDaemon(True)
         
@@ -80,58 +79,60 @@ class BionicSerialClient:
             self.mutex.acquire()
 
             try:
-                # print(' '.join('{:02x}'.format(x) for x in self._ser.readall()))
-                header = self._ser.read(21)
+                #print(' '.join('{:02x}'.format(x) for x in self._ser.readall()))                
+                header = self._ser.read(1)                
 
-                in_byte = -1
-                if header:
-                    in_byte = header[0]
+                if header[0] != BionicMessageBase.get_preamble():                    
+                    self.mutex.release()                                        
+                    continue
+                                
+                data = self._ser.read(20)
 
-                if in_byte == BionicMessageBase.get_preamble():
+                if len(data) < 20:
+                    print("Wrong data len")
+                    self.mutex.release()
+                    continue
+                
+                # Determine length of message
+                seq = data[0]  #  Sequence
+                length = 0
+                try:
+                    length = struct.unpack('H', data[1:3])[0]
+                except ValueError as e:
+                    self.mutex.release()                    
+                    logging.error("Error parsing message length : " + str(e))              
+                    continue          
 
-                    self._ser.timeout = 1
-                    # Determine length of message
-                    seq = header[1]  #  Sequence
-                    length = 0
-                    try:
-                        length = struct.unpack('H', header[2:4])[0]
-                    except ValueError as e:
-                        logging.error("Error parsing message length : " + str(e))                        
+                chs = data[3]  # Checksum
+                device_id = data[4:19]  # Device id
+                
+                # read message length
+                payload = self._ser.read(length)
 
-                    chs = header[4]  # Checksum
-                    device_id = header[4:20]  # Device id
+                counter = 0
+                # handle messages in payload
+                while counter < length:
+                
+                    msg_id = payload[counter]                        
+                    msg_length_data = payload[counter + 1:counter + 3]                
+                    msg_length = struct.unpack('H', msg_length_data)[0]
+
+                    #print("COUNTER: %d LENGTH: %d" % (counter, length))
+                    #print ("ID: %s MSG LENGTH %d" % (msg_id, msg_length))
+
+                    if msg_length <= 0:
+                        break                        
+                    msg = payload[counter + 2: counter + 2 + msg_length]
                     
-                    # read message length
-                    payload = self._ser.read(length)
-                    # print(' '.join('{:02x}'.format(x) for x in payload))
-                    # print(' '.join('{:02x}'.format(x) for x in payload))
-                    # print("")
-                    #
-                    counter = 0
-                    # handle messages in payload
-                    while counter < (length - 5):
-                        
-                        msg_id = payload[counter]                        
-                        msg_length_data = payload[counter + 2:counter + 4]
-                        msg_length = struct.unpack('H', msg_length_data)[0]
+                    try:                            
+                        self.message_handler.handle_message(msg_id, msg, device_id)                            
+                    except Exception as e:                        
+                        logging.error(str(e))
+                        continue
 
-                        #print("COUNTER: %d LENGTH: %d" % (counter, length))
-                        #print ("ID: %s MSG LENGTH %d" % (msg_id, msg_length))
+                    counter += 4 + msg_length                 
 
-                        if msg_length <= 0:
-                            break                        
-                        msg = payload[counter + 4: counter + 4 + msg_length]
-
-                        try:                            
-                            self.message_handler.handle_message(msg_id, msg, device_id)                            
-                        except Exception as e:
-                            logging.error(str(e))
-
-                        counter += 4 + msg_length
-
-                    self._ser.timeout = 0.001
-
-                self.mutex.release()
+                    self.mutex.release()
 
             except SerialException as e:
 
@@ -140,8 +141,6 @@ class BionicSerialClient:
 
                 self.open_serial_port()
                 self.mutex.release()
-
-            self.message_handler.send_messages()
 
         self._ser.close()
 

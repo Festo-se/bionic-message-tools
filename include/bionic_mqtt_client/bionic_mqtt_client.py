@@ -34,7 +34,7 @@ class BionicMqttClient:
 
         self.thread.start()
 
-    def add_subscriber(self, topic, qos=1):
+    def add_subscriber(self, topic, qos=2):
 
         self.subscribers.append(topic)        
 
@@ -49,7 +49,7 @@ class BionicMqttClient:
         self.mqttc.loop_stop()                 
         self.mqttc.disconnect()
         
-    def publish(self, topic, msg, qos=1):
+    def publish(self, topic, msg, qos=2):
 
         logging.debug(f"Published msg: \"{msg} \"on topic: {topic}")
         pub = self.mqttc.publish(topic, msg, qos=qos)
@@ -59,7 +59,7 @@ class BionicMqttClient:
         logging.debug("rc: " + str(rc))
         
         for x in self.subscribers:
-            self.mqttc.subscribe(x)
+            self.mqttc.subscribe(x, qos=2)
 
     def on_message(self, mqttc, obj, msg):    
         """

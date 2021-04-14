@@ -31,9 +31,10 @@ class BionicSerialClient:
     _port = '/dev/ttyUSB0'
     _baud = 2000000
     _send_timeout = 1.0 # Sec
-    _shutdown = False    
+    _shutdown = False
+    _max_retries = 5
     
-    def __init__(self, message_handler=BionicMessageHandler(),  port='/dev/ttyUSB0', baud=2000000):
+    def __init__(self, message_handler=BionicMessageHandler(),  port='/dev/ttyUSB0', baud=2000000, maxRetries = 5):
         
         # Setup the serial port for different systems
         if platform.system() == "Windows":
@@ -52,6 +53,7 @@ class BionicSerialClient:
             logging.info("Setup COM port for linux")
             self._port = '/dev/ttyACM0'
 
+        self._max_retries = maxRetries
         self._baud = baud
         self.mutex = Lock()
         self.message_handler = message_handler
@@ -147,13 +149,12 @@ class BionicSerialClient:
     def open_serial_port(self):
 
         serial_port_open = False
-        while not self._shutdown:
+        tries = 0
+        while not self._shutdown and tries < self._max_retries:
                         
             for port in list_ports.comports():
                 logging.info("found: " + str(port.description))
 
-                print(f"FOUND: {port.description}  IST: {self._port}")
-                
                 # TODO: Implement the description finding for Windows
                 if self._port in port.description:
                     self._port = port.device                    
@@ -167,9 +168,12 @@ class BionicSerialClient:
                         logging.info("But it is already open, continuing our search")
                         logging.error(str(e))
 
-            if not serial_port_open:
-                logging.error("Could not open any serial port! Retrying in 5 sec")
-                time.sleep(5.0)                
+            if not serial_port_open:                
+                tries += 1
+                logging.error("Could not open any serial port! Retrying in 5 sec (" + str(tries) + "/" + str(self._max_retries) + ")")
+
+                if tries < self._max_retries:
+                    time.sleep(5.0)                
             else:
                 logging.info("Setting up serial port")
                 time.sleep(1.0)                

@@ -50,7 +50,7 @@ class BionicSerialClient:
         elif platform.system() == "Linux":
             
             logging.info("Setup COM port for linux")
-            self._port = '/dev/ttyACM0'
+            self._port = port
 
         self._max_retries = maxRetries
         self._baud = baud

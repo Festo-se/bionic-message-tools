@@ -18,7 +18,6 @@ from serial.serialutil import SerialException
 import threading
 from threading import Lock
 import abc
-import numpy as np
 import logging
 import time
 import platform

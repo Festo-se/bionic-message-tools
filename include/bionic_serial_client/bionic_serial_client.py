@@ -108,22 +108,21 @@ class BionicSerialClient:
                 device_id = data[4:19]  # Device id
                 
                 # read message length
-                payload = self._ser.read(length)
-
+                payload = self._ser.read(length)                
                 counter = 0
                 # handle messages in payload
                 while counter < length:
                 
                     msg_id = payload[counter]                        
-                    msg_length_data = payload[counter + 1:counter + 3]                
-                    msg_length = struct.unpack('H', msg_length_data)[0]
+                    #msg_length_data = payload[counter + 1:counter + 3]                
+                    msg_length = struct.unpack('H', payload[counter+2:counter+4])[0]
 
                     #print("COUNTER: %d LENGTH: %d" % (counter, length))
                     #print ("ID: %s MSG LENGTH %d" % (msg_id, msg_length))
 
                     if msg_length <= 0:
-                        break                        
-                    msg = payload[counter + 2: counter + 2 + msg_length]
+                        break
+                    msg = payload[counter + 4: counter + 4 + msg_length]
                     
                     try:                            
                         self.message_handler.handle_message(msg_id, msg, device_id)                            

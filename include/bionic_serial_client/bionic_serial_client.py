@@ -80,13 +80,15 @@ class BionicSerialClient:
             self.mutex.acquire()
 
             try:
-                #print(' '.join('{:02x}'.format(x) for x in self._ser.readall()))                
-                header = self._ser.read(1)                
+                #print(' '.join('{:02x}'.format(x) for x in self._ser.readall()))    
+                logging.debug("Waiting for message")         
+                header = self._ser.read(1)            
+                logging.debug("Message received")     
 
                 if header[0] != BionicMessageBase.get_preamble():                    
                     self.mutex.release()                                        
                     continue
-                                
+
                 data = self._ser.read(20)
 
                 if len(data) < 20:
@@ -179,8 +181,8 @@ class BionicSerialClient:
 
     def send_message(self, ser_msg):
 
-        logging.info("Sending Message over UART ")
-        self.mutex.acquire()
+        logging.info("Sending Message with serial client.")
+        #self.mutex.acquire()
         try:
             # Send bytes
             self._ser.write(ser_msg)            
@@ -189,7 +191,7 @@ class BionicSerialClient:
         except SerialException:
             self.open_serial_port()
         # rospy.sleep(0.020) # time to send
-        self.mutex.release()
+        #self.mutex.release()
 
         return True
 
